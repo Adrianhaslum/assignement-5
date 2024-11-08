@@ -1,0 +1,262 @@
+---
+title: Assignement 5
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Innleding 
+
+Styrketrening er vist seg å være en effektiv fremgangsmåte for å både øke tverrsnittsarealet i skjelettmuskulaturen vår, samt øke egenskapen til å generere maksimal kraft, også omtalt som styrken vår. Styrketrening er spiller en viktig rolle for svært mange, uavhening av forutsetning eller målsetning med treningen. Blandt annet er tung styrketrening meget effektivt for å motvirke enkelte sykdommer eller lidelser, som for eksempel osteoporose. Videre er denne treningsformen en viktig del av treningen for de aller fleste idrettsutøvere, uavhengig om utøveren konkurrerer i en styrkeidrett eller utholdenhetsidrett. Men hva er egentlig styrketrening? Kort forklart er styrketrening all trening som er tiltenkt å bedre eller vedlikeholde vår evne til å produsere maksimal kraft (Raastad et al. s, 13). 
+
+Om vi trener for enten økning i styrke, muskelmasse eller for egen helse, så er treningsvolum en essensiell faktor som kan virke bestemmende for progresjon. Treningsvolum omfatter det totale arbeidet som utføres, og bestemmes av belastning, antall serier, repetisjoner og trenings frekvensen. Treningsvolum har i lang tid vært et viktig tema, dette skyldes at det vil være svært fordelaktig å finne et optimalt volum som maksimerer styrkeøkning og muskelvekst, men som samtidig minimerer risiko for skader eller tap av prestasjon (Schoenfeld et al., 2017). 
+
+Schoenfeld (2013) forteller at treningsvolum er en av de mest essensielle faktorene som fører til muskelvekst, og hvor et høyere volum medfører økt vekst. Videre forteller Krieger (2010) at et høyere treningsvolum kan medføre både positive og negative konsekvenser, bestemt av individets nåværende treningsstatus. Det virker å være et vippepunkt ved et høyere treningsvolum, uten at det enkelt kan konkretiseres hva som er nok eller for mye. Høyere treningsvolum kan bidra til å øke rekruttering av motoriske enheter, og vil kunne virke gunstig for både muskelvekst og styrkeøkning. Men ved for høyt volum kan det medføre muskelødem og økt restitusjonstid (Häkkinen et al., 1998; Kraemer et al., 2002). 
+
+For mange er prestasjonen en svært essensiell faktor, og her kan treningsvolum være faktor som kan påvirke denne. Et høyere volum kan medføre mer muskelvekst, men dette på bekostningen av mer "delayed onset muscle soreness" (DOMS), og det kan medføre en økt restitusjonstid (Schoenfeld et al., 2017) I kontrast til dette kan det virke som at et lavere treningsvolum kan virke mindre belastende for kroppen vår. Og dette kan ifølge Schoenfeld et at. (2017) være gunstig for å øke motorenhetrekruttering per repetisjon, og dette kan derav være gunstig for maksimal styrke. Videre på dette vil lavere treningsvolum ifølge Krieger (2010) kunne åpne opp for en høyere treningsfrekvens.
+
+
+# Metode
+
+## Deltakere og studieoversikt
+
+I studien ble det inkludert 41 deltakere, dette var fordelt på både kvinner og menn. Inklusjonskriteriene for deltakerne var at de ikke kunne kategoriseres som røykere, de var mellom 18 og 40 år gamle. Det var også klare ekslusjonskriterier av aplikantene. Aplikanter ble ikke inkludert i studien dersom de hadde redusert muskelstyrke som følge av tidligere eller en nåværende skade(r), trent en eller mer styrkeøkt ukentlig fra inklusjonsdato, en intoleranse for lokalbedøvelse, og bruken av medikamenter som kan påføre en effekt på treningsadaptasjoner. Det ble eksludert 7 deltakere fra data analysen, dette skyldtes at de ikke hadde gjennomført et minimum av 85% av den planlagte treningen. Årsaken til ikke tilstrekkelig gjennomført trening var smerter eller ubehag i underekstremitetene under gjennomføring av treningen (n = 5), skade oppstått utenfor studieprotokoll (n = 1), eller ikke overholdt studieprotokollen (n = 1). Ved protokoll start var det ingen forskjeller i maksimal voluntær kontraksjon (MVC) normalisert til kroppsmasse eller antropometri (@tbl-1). 
+
+```{r}
+#| echo: false
+#| label: tbl-1
+#| tbl-cap: "Deltakerkarakteristikker"
+
+# Last inn dataene
+library(exscidata)
+data("strengthvolume"); data("dxadata")
+
+# Hent antropometriske data fra datasett
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+baseline_tbl <- dxadata %>%
+  select(participant:time, sex:weight, age, height) %>%  # Sørg for at disse kolonnene finnes
+  filter(time == "pre") %>% 
+  group_by(sex, include) %>% 
+  summarise(
+    N = n(),
+    Alder = sprintf("%.1f (%.1f)", mean(age, na.rm = TRUE), sd(age, na.rm = TRUE)),
+    Vekt = sprintf("%.1f (%.1f)", mean(weight, na.rm = TRUE), sd(weight, na.rm = TRUE)),
+    Stature = sprintf("%.0f (%.0f)", mean(height, na.rm = TRUE), sd(height, na.rm = TRUE)),
+    .groups = "drop"  # For å unngå advarsler om grupping
+  ) %>% 
+  # Konverter alle kolonnene til karakter for å unngå datatypeproblemer i pivot_longer
+  mutate(across(everything(), as.character)) %>%
+  pivot_longer(cols = c(N, Alder, Vekt, Stature), names_to = "Variable", values_to = "Value") %>% 
+  unite("sex_include", sex, include, sep = "_") %>% 
+  pivot_wider(names_from = sex_include, values_from = Value)
+
+# Tabell 
+kable(baseline_tbl, row.names = FALSE, col.names = c("", "Ekskludert", "Inkludert", "Ekskludert", "Inkludert")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>%
+  add_header_above(c(" " = 1, "Kvinne" = 2, "Mann" = 2))
+```
+
+Verdiene presenteres som gjennomsnitt og standardavvik (SD)
+
+Etter at utvalget av deltakere var klart gjennomgikk de en treningsintervensjon på 12 uker med styrketrening. Treningen ble utført på hele kroppen, og foregikk i perioden september til november. For å kunne differensiere treningsvolumet for hver enkelt deltaker, ble beinøvelsene utført unilateralt (et bein av gangen). Det var randomisert om det var høyre eller venstre bein som skulle utføre 1 eller 3 sett for alle deltakere. Alle deltakere skulle utføre begge volumprotokoller på forskjellige bein (f.eks. 1 sett venstre og 3 sett høyre). Den maksimale styrken til deltakerne ble målt ved protokoll start, underveis i protokoll (uke 3, 5 og 9), og ved avslutning av protokollen. Muskeltverrsnittet ble kun mølt før protokollstart og ved avslutning av protokoll (@fig-trening). 
+
+```{r}
+#| echo: false
+#| label: fig-trening
+#| tbl-cap: "Studieoversikt"
+
+# Dataframe som representerer treningsfrekvens og RM per uke
+data <- data.frame(
+  Uke = 1:12,
+  RM = c("10RM", "10RM", "8RM", "8RM*", "8RM", "7RM*", "7RM", "7RM", "7RM*", "7RM", "7RM", "7RM"),
+  Frekvens = c(2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1)
+)
+
+# Ukene der styrkemålingene ble gjort (x-markeringene)
+måling_uker <- data.frame(
+  Uke = c(1, 3, 5, 9, 12),  # Uke 1 representerer baseline
+  Frekvens = 3.1,           # Plassering over søylene
+  label = "x"               # Bruk "x" som markør
+)
+
+# Ukene der muskeltverrsnit ble gjort (sirkel-markeringene))
+sirkel_uker <- data.frame(
+  Uke = c(1, 12),          # Uke 1 og uke 12
+  Frekvens = 3.1           # Plassering over søylene
+)
+
+# Søylediagram som illustrere studiedesign
+ggplot(data, aes(x = factor(Uke), y = Frekvens)) +
+  geom_bar(stat = "identity", fill = "grey", color = "black", width = 0.6) +  
+  geom_text(aes(label = RM), vjust = 0.5, color = "black", size = 5, 
+            angle = 90, position = position_stack(vjust = 0.5)) +  # Plasser RM-etiketter vertikalt midt i søylen
+  geom_text(data = måling_uker, aes(x = factor(Uke), y = Frekvens, label = label), 
+            color = "black", size = 6, vjust = -0.5, position = position_nudge(x = -0.1)) +  # Plasser "x" litt til venstre
+  geom_point(data = sirkel_uker, aes(x = factor(Uke), y = Frekvens), 
+             shape = 21, fill = "white", color = "black", size = 5, stroke = 1.5, 
+             position = position_nudge(x = 0.1)) +  # Plasser sirkler litt til høyre
+  scale_y_continuous(breaks = 1:3, limits = c(0, 3.5)) +  # Justerer y-aksen for å gi plass til markeringene
+  labs(
+    x = "Uke",
+    y = "Treningsfrekvens"
+  ) +
+  theme_minimal()
+```
+
+
+Figuren viser frekvensen av treningen og intensiteten av treningen, intensiteten er vist som repetisjon maks (RM), f.eks. 10RM betyr 10 utførte repetisjoner, hvor repetisjon 10 var kapasitets taket til deltakeren. Der hvor det ble benyttet en intensitet på 90% eller mer av 1RM, er det markert med (*). Øverst på figuren ser vi to sirkelsymboler ved start og slutt av protokollen, denne representerer hvor CSA ble målt. Målingene av CSA ble tatt med DXA og MR av quadriceps muskelgruppen. Ukene hvor det ble utført styrkemålinger markeres med x (pre-intervensjon; n = 34, under; n = 18, post-intervensjon; n = 34). 
+
+## Protokoll for styrketrening
+
+Deltakerne fikk alle utdelt en standardisert oppvarming som skulle utføres før hver treningsøkt. Oppvarmingen besto av 5 minutter på ergometersykkel (12-14 på Borgs skala), etter sykkel skulle de utføre 10 push-ups med tilpasset vanskelighetsgrad, sit-ups, knebøy og rygghev. Videre skulle de utføre ett sett med 10 repetisjoner for hver enkelt styrkeøvelse, hvor belastningen tilsvarte 50% av deres 1RM. 
+
+Selve styrketreningen besto av to deler, en for bein og en for overkropp. Treningen av bein ble gjennomført unilateralt, og øvelsene som ble utdført var beinpress, knefleksjon, og kneekstensjon, og øvelsene ble utført i nevnt rekkefølge. Avhengig av utdelt gruppe, ble alle øvelser utført med ett eller tre sett, og hvor beinet som ble valgt til å gjennomføre ett-sett protokoll ble arbeidet utført mellom sett 2 og 3 til 3-sett beinet. Pausene mellom settene var standardisert til å vare fra 90-180 sekunder. Etter protokoll for underkropp var utført skulle deltakere utføre to sett i bilateral benkpress, nedtrekk og skulderpress eller sittende roing. Skulderpress og sittende roing skulle utføres annenhver treningsøkt. Treningsintensiteten ble gradvis økt gjennom intervensjonen, noe som ilustreres i @fig-trening. Etter uke 9 var alle treningsukene som inkluderte tre økter en økt med lavere intensitet, men repetisjonsantallet var det samme (belastning var 90% av forrige økt). Etter treningsøktene med maksimal innsats skulle det være mimimum 48t før neste økt med maksimal innsats, men etter 24t kunne deltakerne trene med en redusert intensitet. For å bidra til restitusjon for deltakerne, ble det delt ut en standardisert drikke etter hver treningsøkt, denne inneholdt 0.15 g kg$^{-1}$ protein, 11.2g kg$^{-1}$ karbohydrater og 0.5 g kg$^{-1}$ fett. Protokollen var tilrettelagt slik at ikke alle treningsøktene måtte gjennomføres under veilledning for å fasilitere for at protokollen skulle være mer gjennomførbar for deltakerne. Deltakerne ble også instuert i hvordan man skal loggføre treningen detaljert i en treningsdagbok for øktene som ble utført uten veilledning. Dette ble gjort for å kunne sikre fremgang enda bedre.
+
+## Målinger av maksimal muskelstyrke og muskelens CSA
+
+For å måle deltakernes maksimale styrke ble det benyttet 1RM test i øvelsene unilateral beinpress og kneekstensjon. Før 1RM test ble det benyttet en standardisert oppvarmingsprotokoll. Oppvarmingen besto av 10, 6 og 3 repetisjoner på 50%, 75% og 85% av antatt 1RM, etter dette ble belastningen økt gradvis frem til deltakerne ikke lenger klarte å utføre en fullverdig repetisjon. Pre-styrkeprotokoll ble det utført to 1RM målinger, med minimum fire dager treningsfri mellom testene, og hvor den beste testen ble gjeldende for videre analyser. Alle deltakere hadde en post-protokoll 1RM test, men noen testet også styrken underveis i protokoll (n = 18). I målingene underveis i protokoll skulle det være minimum 48t fra forrige treningsøkt. For deltakerne som ikke testet styrken underveis i protokollen ble de regulære styrkeøktene prioritert, som følge av manglende tid, sykdom eller andre utfordringer. 
+
+For å undersøke hypertrofi påført av protokollen ble det utført målinger av CSA i quadriceps muskelgruppen før og etter test. Dette ble gjort ved å benytte MR bilder av quadriceps, protokoll for dette var i henhold til produsentens egen protokoll (S-Scan, Esaote Europe B.V., Maastricht, Nederland). Personen som skulle analysere MR bildene var blindet, for å gjøre dette ble det benyttet OsiriX (v.5.6, Pixmeo Sarl, Bernex, Sveits). Målingene av quadriceps CSA både før og etter protokoll ble gjort på samme sted på låret. Resultat av målingene måtte også inneholde minimum fir bilder påfølgende, med 5mm tykkelse og med en avstand på 10mm. 
+
+## Data analyse og statistikk 
+
+All deskriptiv data presenteres som gjennomsnitt eller standardavvik, med mindre noe annet spesifiseres. Før undersøkelsen ble gjennomfort, ble det forhåndsbestemt utregningsmetode for utvalgsstørrelse. Denne utregnelsen viste at et utvalg på kun 40 deltagere ville være tilstrekkelig for å kunne vise eventuelle forskjeller på rundt 3 og 5 prosentpoeng, for både maksiaml styrke og CSA på 1 og 3 sett, og fremdeles gi en ønkselig statistisk styrke på 80%. 
+
+For å kunne se hvordan volumforhold vil påvirke hypertrofi og maksimal styrke ble det benyttet lineære blandede modeller. De relative endringene pre-intervensjon plasseres som avhengig variabel, og antall sett ble plassert som uavhengig variabel. Variablene pre-intervensjon, og kjønn ble kovarianter for å kunne kontrollere eventuelle effekter de kan påføre for hypertrofi og styrke. 
+
+# Reslultater 
+
+
+```{r}
+#| echo: false
+#| label: fig-styrke
+#| fig-cap: "Utvikling i muskelstyrke for leg press og leg extension"
+
+# Utregning av gjennomsnitt og SD for muskelstyrke
+
+library(dplyr)
+
+strength_mean.sd <- strengthvolume %>% 
+  filter(exercise %in% c("legpress", "legext")) %>% 
+  group_by(time, sets, sex, exercise) %>% 
+  summarise(mean_strength = mean(load, na.rm = TRUE),
+            sd_strength = sd(load, na.rm = TRUE)) %>% 
+  ungroup()
+# Diagram av utviklingen i muskelstyrke
+
+library(ggplot2)
+
+## Endre navn på tidspunktene
+
+strength <- strength_mean.sd %>%
+  mutate(time = recode(time,
+                       "pre" = "Pre",
+                       "session1" = "Uke 1",
+                       "week2" = "Uke 2",
+                       "week5" = "Uke 5",
+                       "week9" = "Uke 9",
+                       "post" = "Post"),
+         time = factor(time, levels = c("Pre", "Uke 1", "Uke 2", "Uke 5", "Uke 9", "Post")))
+
+ggplot(strength, aes(x = time, y = mean_strength, color = sets, shape = sex, group = interaction(sets, sex, exercise))) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = mean_strength - sd_strength, ymax = mean_strength + sd_strength), width = 0.2) +
+  facet_wrap(~ exercise) +
+  labs(x = "Tidspunkt", y = "Gjennomsnittlig muskelstyrke (kg)", color = "Treningsvolum", shape = "Kj\u00F8nn") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+Ser vi til tabellen over er resultatene av maksimal styrke i øvelsene beinpress og kneekstensjon (legpress & legext) visualisert. I øvelsen kneekstensjon begynner vi å se en tydelig forskjell til favør av fler-sett fra allerede uke 5, og i uke 9 blir forskjellen mer signinifikant. I beinpress er det synlig differanse allere etter første uke. I uke 5 er forskjellem mellom 1 og 3 sett størst, forskjellen blir mindre fra uke 9 og frem til post-intervensjon. 
+
+
+Få med:
+- gjennomsnitt endring pre til post, med SD og p-verdi. 
+
+- Gjøre den mer oversiktlig og mer utfyllende.
+
+```{r}
+#| echo: false
+#| label: tbl-muskeltverr
+#| tbl-cap: "Oppsummering av muskeltverrsnitt før og etter intervensjon (kombinert for kjønn, kun pre og post)"
+
+# Utregning av gjennomsnitt og SD for muskeltverrsnitt
+library(dplyr)
+library(knitr)
+library(ggplot2)
+
+# Dataprosessering - omstrukturering og kombinering av data for høyre og venstre bein
+muskeltverr <- dxadata %>%
+  select(participant:include, lean.left_leg, lean.right_leg) %>%
+  pivot_longer(
+    cols = lean.left_leg:lean.right_leg, 
+    names_to = "leg", 
+    values_to = "lean.mass"
+  ) %>%
+  mutate(
+    leg = if_else(leg == "lean.left_leg", "L", "R"), 
+    sets = if_else(multiple == leg, "multiple", "single")
+  ) %>%
+  select(participant, time, sex, include, sets, leg, lean.mass)
+
+# Oppsummering av gjennomsnitt og standardavvik etter tid, treningsvolum og kjønn
+muskeltverr_summary <- muskeltverr %>% 
+  group_by(time, sets, sex) %>% 
+  summarise(
+    mean_lean_mass = mean(lean.mass, na.rm = TRUE),
+    sd_lean_mass = sd(lean.mass, na.rm = TRUE),
+    .groups = "drop"  # Fjerner grupperingen automatisk etter summarise
+  )
+
+# Filtrer til pre og post tidspunkter og kombiner kjønn for en enklere oversikt
+muskeltverr_summary_pre_post <- muskeltverr_summary %>%
+  filter(time %in% c("pre", "post")) %>%
+  group_by(time, sets) %>%
+  summarise(
+    mean_lean_mass = mean(mean_lean_mass, na.rm = TRUE),
+    sd_lean_mass = sqrt(mean(sd_lean_mass^2, na.rm = TRUE)),  # Kombinert SD ved å bruke kvadratet av SD
+    .groups = "drop"
+  ) %>%
+  arrange(time, sets)  # Sortér etter tid og treningsvolum
+
+# Lag en oversiktlig tabell
+muskeltverr_summary_pre_post %>%
+  kable(
+    col.names = c("Tidspunkt", "Treningsvolum", "Gjennomsnittlig muskeltverrsnitt (g)", "Standardavvik (SD)"))
+```
+
+Tabellen over viser gjennomsnittlig CSA oppgitt i gram (g), og SD for fler eller ett-sett pre til post-intervensjon. Dataene presentert er kombinert for både kvinner og menn. Tabellen viser en tydelig fordel for fler-sett for økning i CSA av quadriceps muskelgruppen (rundt 110g). 
+
+Få med:
+- gjennomsnitt endring pre til post
+
+- - Gjøre den mer oversiktlig og mer utfyllende.
+
+# Diskusjon
+
+I denne undersøkelsen ble det funnet bedre effekt på økning i CSA og maksimal styrke på quadriceps muskelgruppen ved å benytte flere sett (3 versus 1), for både kvinner og menn. Disse funnene er i tråd med Schoenfeld (2013) sine uttaleser, hvor treningsvolum er en essensiel faktor for adaptasjoner påført av styrketrening, og at det ble observert en såkalt dose-respons for hvert ekstra sett påført i totalt ukentlig volum. Det må nevnes at både Häkkinen et al. (1998) og Kraemer et al. (2002) forteller om et balansepunkt ved høyere treningsvolum, hvor ved for høyt volum kan negativt påvirke restitusjon og påføre muskelødem. Til tross for at undersøkelsen finner statistisk signifikans til fordel for høyere volum, vil det kunne være til fordel å starte med et lavere volum og øke volumet gradvis. Raastad et al. (2013) forteller at endring i muskelstyrke og CSA varierer stort fra studie til studie, og at dette skyldes individuelle forskjeller fra forsøkspersoner, enten dette dreier seg om genetisk utgangspunkt eller treningshistorikk. Dermed ved å starte en treningsintervensjon ved lavere volumn og øke gradvis bedre sikre å finne det gunstige treningsvolumet til individet, uten å øke risiko for skader eller treningsfatigue. 
+
+Protokollen benyttet seg av relativ høye intensiteter (repetisjon maks), ved å benytte oss av høyere intesitet øker det kravet for rekruttering av motoriske enheter, og dermed bedre rekruttering av høy-terskel enheter (type-II og IIx). Slik trening viser også til bedre hypertrofi ved høy-terskel muskelfibre (Raastad et al., s. 45. 2013). 
+
+Ser vi til @fig-styrke så kan vi se en tydelig styrke økning allerede de to første ukene. Vi vet at CSA er en essensiell faktor som virker bestemmende for styrken vår, men etter allerede to uker vil det trolig ikke ha vært tilstrekkelig med hypertrofi for å kunne gi et nevneverdig utslag på muskel styrken vår. Denne kan dermed forklares gjennom en bedret evne for deltakerne til å rekruttere antall motoriske enheter og høy-terskel fibre ifølge Raastad et al. (s. 65, 2013). For å undersøke slike tilpassninger kan gjøres ved å benytte interpolert twitchteknikk. 
+
+- Er det volumet alene som utgjør forskjellen? Eller ville resultatene kunne sett annerledes ut om den totale tonnasjen mellom ett og tre-sett var standardisert. 
+
+I denne undersøkelsen var hensikten å undersøke treningsadaptasjoner til maksimal styrke og hypertrofi påført av ulike treningsvolum, dette ble utført ved å benytte 1 sett eller 3 sett per øvelse opptil 3* ukentlig. For å kontrollere at det er total volumet som er hoveddriver til de positive effektene oppdaget ved høyere treningsvolum, vil det være interessant å undersøke videre hvordan relasjonen til 1 eller 3 sett per øvelse har på hypertrofi og styrkeøkning dersom volum er standardisert. 
+
+- Svare vesentlig mer utfyllende på samtlig punkter. 
+
+- Få inn enda mer litteratur med i diskusjon 
+
+- Diskutere ulike målemetoder brukt 
+
+- Diskutere deltaker utvalg? 
+
+# Referanseliste 
+
+
